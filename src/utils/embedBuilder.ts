@@ -4,18 +4,6 @@ import { EmbedBuilder, ColorResolvable } from 'discord.js';
  * A utility class to build and customize Discord embeds more easily for the Ghost bot
  */
 export class EmbedCreator {
-  setFields(fields: { name: string; value: string; inline: boolean; }[]) {
-    throw new Error('Method not implemented.');
-  }
-  settype(arg0: string) {
-    throw new Error('Method not implemented.');
-  }
-  static createEmbed(arg0: { type: string; title: string; description: string; timestamp: boolean; }) {
-    throw new Error('Method not implemented.');
-  }
-  static create(arg0: { type: string; title: string; description: string; }) {
-      throw new Error('Method not implemented.');
-  }
   private embed: EmbedBuilder;
   private defaultColor: ColorResolvable = '#8B0000'; // Dark red color for the ghost bot
 
@@ -86,6 +74,16 @@ export class EmbedCreator {
   }
 
   /**
+   * Sets multiple fields at once
+   * @param fields Array of field objects with name, value, and inline properties
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setFields(fields: { name: string; value: string; inline: boolean; }[]): EmbedCreator {
+    this.embed.setFields(fields);
+    return this;
+  }
+
+  /**
    * Sets the footer of the embed
    * @param text The text of the footer
    * @param iconURL The icon URL of the footer
@@ -93,6 +91,17 @@ export class EmbedCreator {
    */
   setFooter(text: string, iconURL?: string): EmbedCreator {
     this.embed.setFooter({ text, iconURL });
+    return this;
+  }
+
+  /**
+   * Sets the type of the embed (for internal use)
+   * @param type The type to set
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setType(type: string): EmbedCreator {
+    // This is a placeholder method that doesn't actually do anything in Discord.js v14
+    // Kept for backward compatibility
     return this;
   }
 
@@ -144,5 +153,35 @@ export class EmbedCreator {
       .setTitle(`✅ ${title}`)
       .setDescription(description)
       .setColor('#00FF00'); // Green for success
+  }
+
+  /**
+   * Creates an embed with custom parameters
+   * @param options Object containing embed options
+   * @returns A new EmbedCreator instance
+   */
+  static create(options: { type?: string; title: string; description: string; }): EmbedCreator {
+    const builder = new EmbedCreator();
+    return builder
+      .setTitle(options.title)
+      .setDescription(options.description);
+  }
+
+  /**
+   * Creates an embed with custom parameters including timestamp
+   * @param options Object containing embed options
+   * @returns A new EmbedCreator instance
+   */
+  static createEmbed(options: { type?: string; title: string; description: string; timestamp: boolean; }): EmbedCreator {
+    const builder = new EmbedCreator();
+    const embed = builder
+      .setTitle(options.title)
+      .setDescription(options.description);
+    
+    if (options.timestamp) {
+      embed.setTimestamp();
+    }
+    
+    return embed;
   }
 }
