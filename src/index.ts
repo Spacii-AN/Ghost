@@ -86,6 +86,137 @@ function registerCommands() {
 // Register slash commands with Discord
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
 
+// Add a tool for manual command management for guild commands
+async function deleteSpecificGuildCommands(commandNames: string[]) {
+  try {
+    console.log(`Attempting to delete specific guild commands: ${commandNames.join(', ')}`);
+    
+    // Get all existing commands
+    const existingCommands = await rest.get(
+      Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.GUILD_ID!)
+    ) as any[];
+    
+    console.log('All existing guild commands:');
+    existingCommands.forEach((cmd: any) => {
+      console.log(`- ${cmd.name} (ID: ${cmd.id})`);
+    });
+    
+    // Find commands to delete by name
+    const commandsToDelete = existingCommands.filter((cmd: any) => 
+      commandNames.includes(cmd.name)
+    );
+    
+    if (commandsToDelete.length === 0) {
+      console.log('No matching guild commands found to delete.');
+      return;
+    }
+    
+    console.log(`Found ${commandsToDelete.length} guild commands to delete.`);
+    
+    // Delete each command individually
+    for (const cmd of commandsToDelete) {
+      console.log(`Deleting guild command: ${cmd.name} (ID: ${cmd.id})`);
+      await rest.delete(
+        Routes.applicationGuildCommand(
+          process.env.CLIENT_ID!, 
+          process.env.GUILD_ID!, 
+          cmd.id
+        )
+      );
+      console.log(`Successfully deleted guild command: ${cmd.name}`);
+    }
+    
+    console.log('Guild command deletion completed.');
+  } catch (error) {
+    console.error('Error during guild command deletion:', error);
+  }
+}
+
+// Add a tool for manual command management for global commands
+async function deleteSpecificGlobalCommands(commandNames: string[]) {
+  try {
+    console.log(`Attempting to delete specific global commands: ${commandNames.join(', ')}`);
+    
+    // Get all existing global commands
+    const existingCommands = await rest.get(
+      Routes.applicationCommands(process.env.CLIENT_ID!)
+    ) as any[];
+    
+    console.log('All existing global commands:');
+    existingCommands.forEach((cmd: any) => {
+      console.log(`- ${cmd.name} (ID: ${cmd.id})`);
+    });
+    
+    // Find commands to delete by name
+    const commandsToDelete = existingCommands.filter((cmd: any) => 
+      commandNames.includes(cmd.name)
+    );
+    
+    if (commandsToDelete.length === 0) {
+      console.log('No matching global commands found to delete.');
+      return;
+    }
+    
+    console.log(`Found ${commandsToDelete.length} global commands to delete.`);
+    
+    // Delete each command individually
+    for (const cmd of commandsToDelete) {
+      console.log(`Deleting global command: ${cmd.name} (ID: ${cmd.id})`);
+      await rest.delete(
+        Routes.applicationCommand(
+          process.env.CLIENT_ID!, 
+          cmd.id
+        )
+      );
+      console.log(`Successfully deleted global command: ${cmd.name}`);
+    }
+    
+    console.log('Global command deletion completed.');
+  } catch (error) {
+    console.error('Error during global command deletion:', error);
+  }
+}
+
+// Add a function to list all guild commands
+async function listAllGuildCommands() {
+  try {
+    const existingCommands = await rest.get(
+      Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.GUILD_ID!)
+    ) as any[];
+    
+    console.log('=== ALL REGISTERED GUILD COMMANDS ===');
+    existingCommands.forEach((cmd: any) => {
+      console.log(`- ${cmd.name} (ID: ${cmd.id})`);
+    });
+    console.log('======================================');
+    
+    return existingCommands;
+  } catch (error) {
+    console.error('Error listing guild commands:', error);
+    return [];
+  }
+}
+
+// Add a function to list all global commands
+async function listAllGlobalCommands() {
+  try {
+    const existingCommands = await rest.get(
+      Routes.applicationCommands(process.env.CLIENT_ID!)
+    ) as any[];
+    
+    console.log('=== ALL REGISTERED GLOBAL COMMANDS ===');
+    existingCommands.forEach((cmd: any) => {
+      console.log(`- ${cmd.name} (ID: ${cmd.id})`);
+    });
+    console.log('=======================================');
+    
+    return existingCommands;
+  } catch (error) {
+    console.error('Error listing global commands:', error);
+    return [];
+  }
+}
+
 (async () => {
   try {
     console.log('Started refreshing application (/) commands.');
@@ -95,21 +226,98 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
       return;
     }
     
-    if (!process.env.CLIENT_ID || !process.env.GUILD_ID) {
-      console.error('Missing CLIENT_ID or GUILD_ID in .env!');
+    if (!process.env.CLIENT_ID) {
+      console.error('Missing CLIENT_ID in .env!');
       return;
     }
-    
+
+    // Check for guild ID
+    const hasGuildId = !!process.env.GUILD_ID;
+    if (!hasGuildId) {
+      console.warn('No GUILD_ID provided in .env. Will only manage global commands.');
+    }
+
+    // Register the current commands from your code
     const commandsArray = registerCommands();
+    const currentCommandNames = commandsArray.map(cmd => cmd.name);
+    console.log(`Current commands in code: ${currentCommandNames.join(', ')}`);
     
+    // HANDLE GUILD COMMANDS
+    if (hasGuildId) {
+      // First, list all currently registered guild commands
+      console.log('Checking currently registered guild commands...');
+      const existingGuildCommands = await listAllGuildCommands();
+      
+      // Find old guild commands that need deletion
+      const oldGuildCommandNames = existingGuildCommands
+        .map((cmd: any) => cmd.name)
+        .filter((name: string) => !currentCommandNames.includes(name));
+      
+      if (oldGuildCommandNames.length > 0) {
+        console.log(`Found ${oldGuildCommandNames.length} old guild commands to remove: ${oldGuildCommandNames.join(', ')}`);
+        
+        // Delete the old guild commands
+        await deleteSpecificGuildCommands(oldGuildCommandNames);
+        
+        // Wait a moment for Discord to process the deletions
+        console.log('Waiting for Discord to process guild command deletions...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        console.log('No old guild commands found that need to be removed.');
+      }
+      
+      // Now register the current commands to the guild
+      console.log('Registering current commands to guild...');
+      await rest.put(
+        Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.GUILD_ID!),
+        { body: commandsArray }
+      );
+      
+      console.log(`Successfully registered ${commandsArray.length} application guild (/) commands.`);
+    }
+    
+    // HANDLE GLOBAL COMMANDS
+    // First, list all currently registered global commands
+    console.log('Checking currently registered global commands...');
+    const existingGlobalCommands = await listAllGlobalCommands();
+    
+    // Find old global commands that need deletion
+    const oldGlobalCommandNames = existingGlobalCommands
+      .map((cmd: any) => cmd.name)
+      .filter((name: string) => !currentCommandNames.includes(name));
+    
+    if (oldGlobalCommandNames.length > 0) {
+      console.log(`Found ${oldGlobalCommandNames.length} old global commands to remove: ${oldGlobalCommandNames.join(', ')}`);
+      
+      // Delete the old global commands
+      await deleteSpecificGlobalCommands(oldGlobalCommandNames);
+      
+      // Wait a moment for Discord to process the deletions
+      console.log('Waiting for Discord to process global command deletions...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } else {
+      console.log('No old global commands found that need to be removed.');
+    }
+    
+    // If you want to register commands globally as well (uncomment if needed)
+    // Typically you would choose either guild OR global registration, not both
+    /*
+    console.log('Registering current commands globally...');
     await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+      Routes.applicationCommands(process.env.CLIENT_ID),
       { body: commandsArray }
     );
+    console.log(`Successfully registered ${commandsArray.length} global application (/) commands.`);
+    */
     
-    console.log('Successfully reloaded application (/) commands.');
+    // Final verification
+    console.log('Verifying final command state...');
+    if (hasGuildId) {
+      await listAllGuildCommands();
+    }
+    await listAllGlobalCommands();
   } catch (error) {
-    console.error(error);
+    console.error('Error during command registration:', error);
   }
 })();
 
