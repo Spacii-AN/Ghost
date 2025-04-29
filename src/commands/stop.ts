@@ -1,6 +1,7 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, GuildMemberRoleManager, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, GuildMemberRoleManager } from 'discord.js';
 import { removeTroll } from '../utils/trollmanager';
 import { getAllowedRole } from '../utils/roleManager';
+import { EmbedCreator } from '../utils/embedBuilder';
 
 export default {
   data: new SlashCommandBuilder()
@@ -14,10 +15,11 @@ export default {
     const hasPermission = member && 'roles' in member && member.roles instanceof GuildMemberRoleManager && member.roles.cache.some(role => allowedRoles.includes(role.id));
 
     if (!hasPermission) {
-      const noPermsEmbed = new EmbedBuilder()
-        .setColor(0xED4245) // Red
-        .setTitle('Permission Denied')
-        .setDescription('You do not have permission to use this command.');
+      const noPermsEmbed = EmbedCreator({
+        type: 'error',
+        title: 'Permission Denied',
+        description: 'You do not have permission to use this command.'
+      });
 
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
@@ -27,11 +29,12 @@ export default {
     // Remove troll
     removeTroll(user.id);
 
-    const embed = new EmbedBuilder()
-      .setColor(0x57F287) // Green
-      .setTitle('Trolling Stopped')
-      .setDescription(`Stopped trolling ${user}.`)
-      .setTimestamp();
+    const embed = EmbedCreator({
+      type: 'success',
+      title: 'Trolling Stopped',
+      description: `Stopped trolling ${user}.`,
+      timestamp: true
+    });
 
     await interaction.reply({ embeds: [embed] });
   }

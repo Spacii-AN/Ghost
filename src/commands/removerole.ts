@@ -1,5 +1,6 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits } from 'discord.js';
 import { removeAllowedRole, getAllowedRole } from '../utils/roleManager';
+import { EmbedCreator } from '../utils/embedBuilder';
 
 export default {
   data: new SlashCommandBuilder()
@@ -14,22 +15,24 @@ export default {
     const allowedRoles = getAllowedRole();
     
     if (!allowedRoles.includes(role.id)) {
-      const errorEmbed = new EmbedBuilder()
-        .setColor(0xED4245) // Red
-        .setTitle('Role Not Found')
-        .setDescription(`Role ${role.name} is not in the list of allowed roles.`)
-        .setTimestamp();
+      const errorEmbed = EmbedCreator({
+        type: 'error',
+        title: 'Role Not Found',
+        description: `Role ${role.name} is not in the list of allowed roles.`,
+        timestamp: true
+      });
       
       return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
     
     removeAllowedRole(role.id);
     
-    const embed = new EmbedBuilder()
-      .setColor(0x57F287) // Green
-      .setTitle('Role Removed')
-      .setDescription(`Role ${role.name} has been removed from the list of allowed roles.`)
-      .setTimestamp();
+    const embed = EmbedCreator({
+      type: 'success',
+      title: 'Role Removed',
+      description: `Role ${role.name} has been removed from the list of allowed roles.`,
+      timestamp: true
+    });
 
     await interaction.reply({ embeds: [embed] });
   }

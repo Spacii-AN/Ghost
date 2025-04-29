@@ -4,6 +4,12 @@ import { EmbedBuilder, ColorResolvable } from 'discord.js';
  * A utility class to build and customize Discord embeds more easily for the Ghost bot
  */
 export class EmbedCreator {
+  static createEmbed(arg0: { type: string; title: string; description: string; timestamp: boolean; }) {
+    throw new Error('Method not implemented.');
+  }
+  static create(arg0: { type: string; title: string; description: string; }) {
+      throw new Error('Method not implemented.');
+  }
   private embed: EmbedBuilder;
   private defaultColor: ColorResolvable = '#8B0000'; // Dark red color for the ghost bot
 

@@ -1,6 +1,7 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, GuildMemberRoleManager, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, GuildMemberRoleManager } from 'discord.js';
 import { getTrolls, TrollEntry } from '../utils/trollmanager';
 import { getAllowedRole } from '../utils/roleManager';
+import { EmbedCreator } from '../utils/embedBuilder';
 
 export default {
   data: new SlashCommandBuilder()
@@ -13,10 +14,11 @@ export default {
     const hasPermission = member && 'roles' in member && member.roles instanceof GuildMemberRoleManager && member.roles.cache.some(role => allowedRoles.includes(role.id));
 
     if (!hasPermission) {
-      const noPermsEmbed = new EmbedBuilder()
-        .setColor(0xED4245) // Red
-        .setTitle('Permission Denied')
-        .setDescription('You do not have permission to use this command.');
+      const noPermsEmbed = EmbedCreator({
+        type: 'error',
+        title: 'Permission Denied',
+        description: 'You do not have permission to use this command.',
+      });
 
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
@@ -24,10 +26,11 @@ export default {
     const trolls = getTrolls().filter(troll => troll.endTime > Date.now());
     
     if (trolls.length === 0) {
-      const noTrollsEmbed = new EmbedBuilder()
-        .setColor(0x5865F2) // Discord Blurple
-        .setTitle('No Active Trolls')
-        .setDescription('There are no active trolls at the moment.');
+      const noTrollsEmbed = EmbedCreator({
+        type: 'info',
+        title: 'No Active Trolls',
+        description: 'There are no active trolls at the moment.'
+      });
       
       return await interaction.reply({ embeds: [noTrollsEmbed] });
     }
@@ -52,12 +55,13 @@ export default {
       }
     }));
     
-    const statusEmbed = new EmbedBuilder()
-      .setColor(0x5865F2) // Discord Blurple
-      .setTitle('Active Trolls')
-      .setDescription(`There are ${trolls.length} active trolls:`)
-      .addFields(fields)
-      .setTimestamp();
+    const statusEmbed = EmbedCreator({
+      type: 'info',
+      title: 'Active Trolls',
+      description: `There are ${trolls.length} active trolls:`,
+      fields: fields,
+      timestamp: true
+    });
     
     await interaction.reply({ embeds: [statusEmbed] });
   }

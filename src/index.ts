@@ -1,8 +1,9 @@
-import { Client, GatewayIntentBits, Collection, REST, Routes, ButtonInteraction, EmbedBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, REST, Routes, ButtonInteraction } from 'discord.js';
 import { readdirSync } from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { removeTroll } from './utils/trollmanager';
+import { EmbedCreator } from './utils/embedBuilder';
 
 dotenv.config();
 
@@ -108,20 +109,22 @@ async function handleStopTrolling(userId: string, interaction: ButtonInteraction
     removeTroll(userId);
     
     const user = await client.users.fetch(userId);
-    const embed = new EmbedBuilder()
-      .setColor(0x57F287) // Green
-      .setTitle('Trolling Stopped')
-      .setDescription(`Stopped trolling ${user.tag}.`)
-      .setTimestamp();
+    const embed = EmbedCreator({
+      type: 'success',
+      title: 'Trolling Stopped',
+      description: `Stopped trolling ${user.tag}.`,
+      timestamp: true
+    });
     
     await interaction.reply({ embeds: [embed] });
   } catch (error) {
     console.error('Error handling stop trolling button:', error);
-    const errorEmbed = new EmbedBuilder()
-      .setColor(0xED4245) // Red
-      .setTitle('Error')
-      .setDescription('An error occurred while trying to stop trolling.')
-      .setTimestamp();
+    const errorEmbed = EmbedCreator({
+      type: 'error',
+      title: 'Error',
+      description: 'An error occurred while trying to stop trolling.',
+      timestamp: true
+    });
     
     await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
   }

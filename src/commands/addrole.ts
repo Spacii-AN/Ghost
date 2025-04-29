@@ -1,33 +1,27 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { saveAllowedRole } from '../utils/roleManager';
-import { createEmbed } from '../utils/embedBuilder';
+import { EmbedCreator } from '../utils/embedBuilder';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('addrole')
-    .setDescription('Add a role that can use the bot')
-    .addRoleOption(option => option.setName('role').setDescription('Role to add').setRequired(true)),
+    .setDescription('Add a role to the list of roles allowed to use troll commands')
+    .addRoleOption(option => option.setName('role').setDescription('Role to add').setRequired(true))
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    if (!interaction.memberPermissions?.has('Administrator')) {
-      const noPermsEmbed = createEmbed({
-        type: 'error',
-        title: 'Permission Denied',
-        description: 'You need Administrator permissions to use this command.'
-      });
-
-      return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
-    }
-
+    // Only admins can run this command (set in the slash command builder above)
     const role = interaction.options.getRole('role', true);
+    
     saveAllowedRole(role.id);
-
-    const successEmbed = createEmbed({
+    
+    const embed = EmbedCreator({
       type: 'success',
       title: 'Role Added',
-      description: `${role} can now use the bot commands.`
+      description: `Role ${role.name} has been added to the list of allowed roles.`,
+      timestamp: true
     });
 
-    await interaction.reply({ embeds: [successEmbed] });
+    await interaction.reply({ embeds: [embed] });
   }
 };

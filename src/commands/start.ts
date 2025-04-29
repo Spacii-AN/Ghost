@@ -1,13 +1,19 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, TextChannel, GuildMemberRoleManager, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, TextChannel, GuildMemberRoleManager } from 'discord.js';
 import { saveTroll } from '../utils/trollmanager';
 import { getAllowedRole } from '../utils/roleManager';
+import { EmbedCreator } from '../utils/embedBuilder';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('start')
     .setDescription('Start trolling a user')
     .addUserOption(option => option.setName('user').setDescription('User to troll').setRequired(true))
-    .addIntegerOption(option => option.setName('duration').setDescription('Duration in minutes').setRequired(true)),
+    .addIntegerOption(option => option.setName('duration').setDescription('Duration in minutes').setRequired(true))
+    .addIntegerOption(option => 
+      option.setName('frequency')
+        .setDescription('Average ping frequency in seconds (default: 30)')
+        .setRequired(false)
+    ),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const member = interaction.member;
@@ -15,10 +21,11 @@ export default {
     const hasPermission = member && 'roles' in member && member.roles instanceof GuildMemberRoleManager && member.roles.cache.some(role => allowedRoles.includes(role.id));
 
     if (!hasPermission) {
-      const noPermsEmbed = new EmbedBuilder()
-        .setColor(0xED4245) // Red
-        .setTitle('Permission Denied')
-        .setDescription('You do not have permission to use this command.');
+      const noPermsEmbed = EmbedCreator({
+        type: 'error',
+        title: 'Permission Denied',
+        description: 'You do not have permission to use this command.'
+      });
 
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
@@ -26,11 +33,17 @@ export default {
     const user = interaction.options.getUser('user', true);
     const duration = interaction.options.getInteger('duration', true);
     
-    if (duration <= 0) {
-      const errorEmbed = new EmbedBuilder()
-        .setColor(0xED4245) // Red
-        .setTitle('Invalid Duration')
-        .setDescription('Duration must be greater than 0 minutes.');
+    // Default frequency is 30 seconds, with a range of ± 15 seconds
+    const avgFrequency = interaction.options.getInteger('frequency') || 30;
+    const freqVariance = Math.floor(avgFrequency / 2);
+    
+    // Make sure frequency is reasonable
+    if (avgFrequency < 5) {
+      const errorEmbed = EmbedCreator({
+        type: 'error',
+        title: 'Invalid Frequency',
+        description: 'Ping frequency cannot be less than 5 seconds.'
+      });
       
       return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
@@ -38,11 +51,12 @@ export default {
     // Save troll
     saveTroll(user.id, duration);
 
-    const embed = new EmbedBuilder()
-      .setColor(0x57F287) // Green
-      .setTitle('Trolling Started')
-      .setDescription(`Now trolling ${user} for ${duration} minute(s).\nThe user will be randomly pinged in various channels.`)
-      .setTimestamp();
+    const embed = EmbedCreator({
+      type: 'success',
+      title: 'Trolling Started',
+      description: `Now trolling ${user} for ${duration} minute(s).\nPing frequency: ~${avgFrequency} seconds.`,
+      timestamp: true
+    });
 
     const stopButton = new ButtonBuilder()
       .setCustomId(`stop_trolling_${user.id}`)
@@ -83,6 +97,6 @@ export default {
       } catch (err) {
         console.error(`Failed to send message in ${randomChannel.name}:`, err);
       }
-    }, Math.floor(Math.random() * 30000) + 15000); // Random between 15-45 seconds
+    }, Math.floor(Math.random() * (freqVariance * 2)) + (avgFrequency - freqVariance) * 1000); // Random frequency based on input
   }
 };
