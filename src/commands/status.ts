@@ -14,23 +14,28 @@ export default {
     const hasPermission = member && 'roles' in member && member.roles instanceof GuildMemberRoleManager && member.roles.cache.some(role => allowedRoles.includes(role.id));
 
     if (!hasPermission) {
-      const noPermsEmbed = EmbedCreator({
-        type: 'error',
-        title: 'Permission Denied',
-        description: 'You do not have permission to use this command.',
-      });
-
+      const noPermsEmbed = new EmbedCreator()
+        
+        .setTitle('Permission Denied')
+        .setDescription('You do not have permission to use this command.')
+        .setColor('#FF0000')
+        .setTimestamp()
+        .build();
+      
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
 
     const trolls = getTrolls().filter(troll => troll.endTime > Date.now());
     
     if (trolls.length === 0) {
-      const noTrollsEmbed = EmbedCreator({
-        type: 'info',
-        title: 'No Active Trolls',
-        description: 'There are no active trolls at the moment.'
-      });
+      const noTrollsEmbed = new EmbedCreator()
+      
+        .setTitle('No Active Trolls')
+        .setDescription('There are no active trolls at the moment.')
+        .setColor('#FF0000')
+        .setTimestamp()
+        .build(); 
+      
       
       return await interaction.reply({ embeds: [noTrollsEmbed] });
     }
@@ -55,13 +60,14 @@ export default {
       }
     }));
     
-    const statusEmbed = EmbedCreator({
-      type: 'info',
-      title: 'Active Trolls',
-      description: `There are ${trolls.length} active trolls:`,
-      fields: fields,
-      timestamp: true
-    });
+    const statusEmbed = new EmbedCreator()
+      .setTitle('Active Trolls')
+      .setDescription(`There are ${trolls.length} active trolls:`)
+      .setColor('#00FF00')
+      .setTimestamp()
+      .build();
+
+      
     
     await interaction.reply({ embeds: [statusEmbed] });
   }

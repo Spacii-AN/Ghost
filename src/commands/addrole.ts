@@ -15,12 +15,12 @@ export default {
     
     saveAllowedRole(role.id);
     
-    const embed = EmbedCreator({
-      type: 'success',
-      title: 'Role Added',
-      description: `Role ${role.name} has been added to the list of allowed roles.`,
-      timestamp: true
-    });
+    const embed = new EmbedCreator()
+      .setTitle('✅ Role Added')
+      .setDescription(`Role ${role.name} has been added to the list of allowed roles.`)
+      .setColor('#00FF00')
+      .setTimestamp()
+      .build();
 
     await interaction.reply({ embeds: [embed] });
   }

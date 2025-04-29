@@ -21,12 +21,14 @@ export default {
     const hasPermission = member && 'roles' in member && member.roles instanceof GuildMemberRoleManager && member.roles.cache.some(role => allowedRoles.includes(role.id));
 
     if (!hasPermission) {
-      const noPermsEmbed = EmbedCreator({
-        type: 'error',
-        title: 'Permission Denied',
-        description: 'You do not have permission to use this command.'
-      });
-
+      const noPermsEmbed = new EmbedCreator()
+        .setTitle('Permission Denied')
+        .setDescription('You do not have permission to use this command.')
+        .setColor('#FF0000')
+        .setTimestamp()
+        .build();
+      
+       
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
 
@@ -39,11 +41,15 @@ export default {
     
     // Make sure frequency is reasonable
     if (avgFrequency < 5) {
-      const errorEmbed = EmbedCreator({
-        type: 'error',
-        title: 'Invalid Frequency',
-        description: 'Ping frequency cannot be less than 5 seconds.'
-      });
+      const errorEmbed = new EmbedCreator()
+
+        .setTitle('Invalid Frequency')
+        .setDescription('Ping frequency cannot be less than 5 seconds.')
+        .setColor('#FF0000')
+        .setTimestamp()
+        .build();
+      
+      
       
       return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
@@ -51,12 +57,15 @@ export default {
     // Save troll
     saveTroll(user.id, duration);
 
-    const embed = EmbedCreator({
-      type: 'success',
-      title: 'Trolling Started',
-      description: `Now trolling ${user} for ${duration} minute(s).\nPing frequency: ~${avgFrequency} seconds.`,
-      timestamp: true
-    });
+    const embed = new EmbedCreator()
+
+      .setTitle('Trolling Started')
+      .setDescription(`Now trolling ${user} for ${duration} minute(s).\nPing frequency: ~${avgFrequency} seconds.`) 
+      .setColor('#00FF00')
+      .setTimestamp()
+      .build();
+
+    
 
     const stopButton = new ButtonBuilder()
       .setCustomId(`stop_trolling_${user.id}`)

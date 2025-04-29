@@ -15,24 +15,28 @@ export default {
     const allowedRoles = getAllowedRole();
     
     if (!allowedRoles.includes(role.id)) {
-      const errorEmbed = EmbedCreator({
-        type: 'error',
-        title: 'Role Not Found',
-        description: `Role ${role.name} is not in the list of allowed roles.`,
-        timestamp: true
-      });
+      const errorEmbed = new EmbedCreator()
+
+        .setColor('#FF0000')
+        .setTitle('❌ Role Not Found')
+        .setDescription(`Role ${role.name} is not in the list of allowed roles.`)
+        .setTimestamp()
+        .build();
+    
       
       return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
     
     removeAllowedRole(role.id);
     
-    const embed = EmbedCreator({
-      type: 'success',
-      title: 'Role Removed',
-      description: `Role ${role.name} has been removed from the list of allowed roles.`,
-      timestamp: true
-    });
+    const embed = new EmbedCreator()
+      .setColor('#00FF00')
+      .setTitle('✅ Role Removed')
+      .setDescription(`Role ${role.name} has been removed from the list of allowed roles.`)
+      .setTimestamp()
+      .build();
+
+     
 
     await interaction.reply({ embeds: [embed] });
   }

@@ -15,11 +15,14 @@ export default {
     const hasPermission = member && 'roles' in member && member.roles instanceof GuildMemberRoleManager && member.roles.cache.some(role => allowedRoles.includes(role.id));
 
     if (!hasPermission) {
-      const noPermsEmbed = EmbedCreator({
-        type: 'error',
-        title: 'Permission Denied',
-        description: 'You do not have permission to use this command.'
-      });
+      const noPermsEmbed = new EmbedCreator()
+        
+        .setTitle('Permission Denied')
+        .setDescription('You do not have permission to use this command.')
+        .setColor('#FF0000')
+        .setTimestamp()
+        .build();
+      
 
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
@@ -29,12 +32,13 @@ export default {
     // Remove troll
     removeTroll(user.id);
 
-    const embed = EmbedCreator({
-      type: 'success',
-      title: 'Trolling Stopped',
-      description: `Stopped trolling ${user}.`,
-      timestamp: true
-    });
+    const embed = new EmbedCreator()
+      .setTitle('Trolling Stopped')
+      .setDescription(`Stopped trolling ${user}.`)
+      .setTimestamp()
+      .setColor('#00FF00')
+      .build();
+  
 
     await interaction.reply({ embeds: [embed] });
   }

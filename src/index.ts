@@ -109,23 +109,23 @@ async function handleStopTrolling(userId: string, interaction: ButtonInteraction
     removeTroll(userId);
     
     const user = await client.users.fetch(userId);
-    const embed = EmbedCreator({
-      type: 'success',
-      title: 'Trolling Stopped',
-      description: `Stopped trolling ${user.tag}.`,
-      timestamp: true
-    });
-    
+    const embed = new EmbedCreator()
+      .setTitle('Trolling Stopped')
+      .setDescription(`Stopped trolling ${user.tag}.`)
+      .setTimestamp()
+      .setColor('#FF0000')
+      .build();
+
+      
     await interaction.reply({ embeds: [embed] });
   } catch (error) {
     console.error('Error handling stop trolling button:', error);
-    const errorEmbed = EmbedCreator({
-      type: 'error',
-      title: 'Error',
-      description: 'An error occurred while trying to stop trolling.',
-      timestamp: true
-    });
-    
+    const errorEmbed = new EmbedCreator()
+      .setTitle('Error')
+      .setDescription('An error occurred while trying to stop trolling.')
+      .setTimestamp()
+      .setColor('#FF0000')
+      .build()
     await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
   }
 }
