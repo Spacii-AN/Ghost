@@ -34,7 +34,7 @@ export default {
         .setTimestamp()
         .build(); 
       
-      return await interaction.reply({ embeds: [noTrollsEmbed] });
+        return await interaction.reply({ embeds: [noTrollsEmbed], ephemeral: true });
     }
     
     // Create fields for each troll
@@ -65,6 +65,6 @@ export default {
       .setFields(fields)
       .build();
     
-    await interaction.reply({ embeds: [statusEmbed] });
+      await interaction.reply({ embeds: [statusEmbed], ephemeral: true });
   }
 };

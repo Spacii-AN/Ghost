@@ -37,6 +37,6 @@ export default {
       .setColor('#00FF00')
       .build();
 
-    await interaction.reply({ embeds: [embed] });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 };

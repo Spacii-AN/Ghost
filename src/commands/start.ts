@@ -67,7 +67,7 @@ export default {
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(stopButton);
 
-    await interaction.reply({ embeds: [embed], components: [row] });
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
 
     // Start pinging randomly
     const endTime = Date.now() + duration * 60000;

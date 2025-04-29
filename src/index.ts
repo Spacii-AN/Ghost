@@ -373,7 +373,7 @@ async function handleStopTrolling(userId: string, interaction: ButtonInteraction
       .setColor('#FF0000')
       .build();
       
-    await interaction.reply({ embeds: [embed] });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
   } catch (error) {
     console.error('Error handling stop trolling button:', error);
     const errorEmbed = new EmbedCreator()
