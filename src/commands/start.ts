@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, TextChannel, GuildMemberRoleManager } from 'discord.js';
-import { saveTroll } from '../utils/trollmanager';
+import { saveTroll, storeInterval } from '../utils/trollmanager';
 import { getAllowedRole } from '../utils/roleManager';
 import { EmbedCreator } from '../utils/embedBuilder';
 
@@ -28,7 +28,6 @@ export default {
         .setTimestamp()
         .build();
       
-       
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
 
@@ -42,14 +41,11 @@ export default {
     // Make sure frequency is reasonable
     if (avgFrequency < 5) {
       const errorEmbed = new EmbedCreator()
-
         .setTitle('Invalid Frequency')
         .setDescription('Ping frequency cannot be less than 5 seconds.')
         .setColor('#FF0000')
         .setTimestamp()
         .build();
-      
-      
       
       return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
@@ -58,14 +54,11 @@ export default {
     saveTroll(user.id, duration);
 
     const embed = new EmbedCreator()
-
       .setTitle('Trolling Started')
       .setDescription(`Now trolling ${user} for ${duration} minute(s).\nPing frequency: ~${avgFrequency} seconds.`) 
       .setColor('#00FF00')
       .setTimestamp()
       .build();
-
-    
 
     const stopButton = new ButtonBuilder()
       .setCustomId(`stop_trolling_${user.id}`)
@@ -99,7 +92,7 @@ export default {
 
       try {
         // Send the ghost ping message and delete it quickly
-        const message = await randomChannel.send(`${user}`);
+        const message = await randomChannel.send(`<@${user.id}>`);
         setTimeout(() => {
           message.delete().catch(err => console.error(`Failed to delete message:`, err));
         }, 500); // Delete after 500ms for a proper ghost ping
@@ -107,5 +100,8 @@ export default {
         console.error(`Failed to send message in ${randomChannel.name}:`, err);
       }
     }, Math.floor(Math.random() * (freqVariance * 2)) + (avgFrequency - freqVariance) * 1000); // Random frequency based on input
+    
+    // Store the interval so it can be stopped later
+    storeInterval(user.id, interval);
   }
 };

@@ -16,14 +16,12 @@ export default {
 
     if (!hasPermission) {
       const noPermsEmbed = new EmbedCreator()
-        
         .setTitle('Permission Denied')
         .setDescription('You do not have permission to use this command.')
         .setColor('#FF0000')
         .setTimestamp()
         .build();
       
-
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
 
@@ -38,7 +36,6 @@ export default {
       .setTimestamp()
       .setColor('#00FF00')
       .build();
-  
 
     await interaction.reply({ embeds: [embed] });
   }

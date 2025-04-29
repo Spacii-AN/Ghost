@@ -15,7 +15,6 @@ export default {
 
     if (!hasPermission) {
       const noPermsEmbed = new EmbedCreator()
-        
         .setTitle('Permission Denied')
         .setDescription('You do not have permission to use this command.')
         .setColor('#FF0000')
@@ -29,13 +28,11 @@ export default {
     
     if (trolls.length === 0) {
       const noTrollsEmbed = new EmbedCreator()
-      
         .setTitle('No Active Trolls')
         .setDescription('There are no active trolls at the moment.')
         .setColor('#FF0000')
         .setTimestamp()
         .build(); 
-      
       
       return await interaction.reply({ embeds: [noTrollsEmbed] });
     }
@@ -65,9 +62,8 @@ export default {
       .setDescription(`There are ${trolls.length} active trolls:`)
       .setColor('#00FF00')
       .setTimestamp()
+      .setFields(fields)
       .build();
-
-      
     
     await interaction.reply({ embeds: [statusEmbed] });
   }

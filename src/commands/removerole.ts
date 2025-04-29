@@ -16,13 +16,11 @@ export default {
     
     if (!allowedRoles.includes(role.id)) {
       const errorEmbed = new EmbedCreator()
-
         .setColor('#FF0000')
         .setTitle('❌ Role Not Found')
         .setDescription(`Role ${role.name} is not in the list of allowed roles.`)
         .setTimestamp()
         .build();
-    
       
       return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     }
@@ -35,8 +33,6 @@ export default {
       .setDescription(`Role ${role.name} has been removed from the list of allowed roles.`)
       .setTimestamp()
       .build();
-
-     
 
     await interaction.reply({ embeds: [embed] });
   }

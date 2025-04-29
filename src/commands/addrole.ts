@@ -14,7 +14,7 @@ export default {
     const role = interaction.options.getRole('role', true);
     
     saveAllowedRole(role.id);
-    
+
     const embed = new EmbedCreator()
       .setTitle('✅ Role Added')
       .setDescription(`Role ${role.name} has been added to the list of allowed roles.`)

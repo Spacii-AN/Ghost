@@ -1,16 +1,11 @@
 import { Client, GatewayIntentBits, Collection, REST, Routes, ButtonInteraction } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { removeTroll } from './utils/trollmanager.js';
-import { EmbedCreator } from './utils/embedBuilder.js';
+import { removeTroll } from './utils/trollmanager';
+import { EmbedCreator } from './utils/embedBuilder';
 
 dotenv.config();
-
-// ES modules compatibility
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 interface ExtendedClient extends Client {
   commands: Collection<string, any>;
@@ -39,17 +34,17 @@ const directCommandFiles = fs.readdirSync(commandsPath).filter(file =>
 );
 
 // Function to register commands
-async function registerCommands() {
+function registerCommands() {
   const commandsArray = [];
   
   // Process direct command files
   for (const file of directCommandFiles) {
     const filePath = path.join(commandsPath, file);
     try {
-      // Dynamically import the command file using the correct URL format
-      const command = await import(`file://${path.resolve(filePath)}`);
+      // Import the command using require
+      const command = require(filePath);
       
-      if ('default' in command && 'data' in command.default && 'execute' in command.default) {
+      if (command.default && command.default.data && command.default.execute) {
         client.commands.set(command.default.data.name, command.default);
         commandsArray.push(command.default.data.toJSON());
       } else {
@@ -70,10 +65,10 @@ async function registerCommands() {
     for (const file of commandFiles) {
       const filePath = path.join(folderPath, file);
       try {
-        // Dynamically import the command file using the correct URL format
-        const command = await import(`file://${path.resolve(filePath)}`);
+        // Import the command using require
+        const command = require(filePath);
         
-        if ('default' in command && 'data' in command.default && 'execute' in command.default) {
+        if (command.default && command.default.data && command.default.execute) {
           client.commands.set(command.default.data.name, command.default);
           commandsArray.push(command.default.data.toJSON());
         } else {
@@ -89,18 +84,23 @@ async function registerCommands() {
 }
 
 // Register slash commands with Discord
-const rest = new REST({ version: '10' }).setToken(process.env.TOKEN || '');
+const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
 
 (async () => {
   try {
     console.log('Started refreshing application (/) commands.');
+    
+    if (!process.env.TOKEN) {
+      console.error('Missing TOKEN in .env!');
+      return;
+    }
     
     if (!process.env.CLIENT_ID || !process.env.GUILD_ID) {
       console.error('Missing CLIENT_ID or GUILD_ID in .env!');
       return;
     }
     
-    const commandsArray = await registerCommands();
+    const commandsArray = registerCommands();
     
     await rest.put(
       Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
