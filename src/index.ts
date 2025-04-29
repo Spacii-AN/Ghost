@@ -1,7 +1,8 @@
-import { Client, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, REST, Routes, ButtonInteraction, EmbedBuilder } from 'discord.js';
 import { readdirSync } from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import { removeTroll } from './utils/trollmanager';
 
 dotenv.config();
 
@@ -67,25 +68,63 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+  // Handle slash commands
+  if (interaction.isChatInputCommand()) {
+    const command = client.commands.get(interaction.commandName);
 
-  const command = client.commands.get(interaction.commandName);
+    if (!command) {
+      console.error(`No command matching ${interaction.commandName} was found.`);
+      return;
+    }
 
-  if (!command) {
-    console.error(`No command matching ${interaction.commandName} was found.`);
-    return;
-  }
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'There was an error executing this command.', ephemeral: true });
-    } else {
-      await interaction.reply({ content: 'There was an error executing this command.', ephemeral: true });
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: 'There was an error executing this command.', ephemeral: true });
+      } else {
+        await interaction.reply({ content: 'There was an error executing this command.', ephemeral: true });
+      }
+    }
+  } 
+  // Handle button interactions
+  else if (interaction.isButton()) {
+    const buttonId = interaction.customId;
+    
+    // Handle stop trolling button
+    if (buttonId.startsWith('stop_trolling_')) {
+      const userId = buttonId.replace('stop_trolling_', '');
+      await handleStopTrolling(userId, interaction);
     }
   }
 });
+
+/**
+ * Handle stop trolling button interaction
+ */
+async function handleStopTrolling(userId: string, interaction: ButtonInteraction) {
+  try {
+    removeTroll(userId);
+    
+    const user = await client.users.fetch(userId);
+    const embed = new EmbedBuilder()
+      .setColor(0x57F287) // Green
+      .setTitle('Trolling Stopped')
+      .setDescription(`Stopped trolling ${user.tag}.`)
+      .setTimestamp();
+    
+    await interaction.reply({ embeds: [embed] });
+  } catch (error) {
+    console.error('Error handling stop trolling button:', error);
+    const errorEmbed = new EmbedBuilder()
+      .setColor(0xED4245) // Red
+      .setTitle('Error')
+      .setDescription('An error occurred while trying to stop trolling.')
+      .setTimestamp();
+    
+    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+  }
+}
 
 client.login(process.env.TOKEN);

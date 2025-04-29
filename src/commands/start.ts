@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, TextChannel, GuildMemberRoleManager } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, TextChannel, GuildMemberRoleManager, EmbedBuilder } from 'discord.js';
 import { saveTroll } from '../utils/trollmanager';
 import { getAllowedRole } from '../utils/roleManager';
 
@@ -16,23 +16,33 @@ export default {
 
     if (!hasPermission) {
       const noPermsEmbed = new EmbedBuilder()
+        .setColor(0xED4245) // Red
         .setTitle('Permission Denied')
-        .setDescription('You do not have permission to use this command.')
-        .setColor(0xFF0000);
+        .setDescription('You do not have permission to use this command.');
 
       return await interaction.reply({ embeds: [noPermsEmbed], ephemeral: true });
     }
 
     const user = interaction.options.getUser('user', true);
     const duration = interaction.options.getInteger('duration', true);
+    
+    if (duration <= 0) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor(0xED4245) // Red
+        .setTitle('Invalid Duration')
+        .setDescription('Duration must be greater than 0 minutes.');
+      
+      return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+    }
 
     // Save troll
     saveTroll(user.id, duration);
 
     const embed = new EmbedBuilder()
+      .setColor(0x57F287) // Green
       .setTitle('Trolling Started')
-      .setDescription(`Now trolling ${user} for ${duration} minute(s).`)
-      .setColor(0xFF9900);
+      .setDescription(`Now trolling ${user} for ${duration} minute(s).\nThe user will be randomly pinged in various channels.`)
+      .setTimestamp();
 
     const stopButton = new ButtonBuilder()
       .setCustomId(`stop_trolling_${user.id}`)
@@ -65,10 +75,14 @@ export default {
       const randomChannel = channels[Math.floor(Math.random() * channels.length)];
 
       try {
-        await randomChannel.send(`${user}`);
+        // Send the ghost ping message and delete it quickly
+        const message = await randomChannel.send(`${user}`);
+        setTimeout(() => {
+          message.delete().catch(err => console.error(`Failed to delete message:`, err));
+        }, 500); // Delete after 500ms for a proper ghost ping
       } catch (err) {
         console.error(`Failed to send message in ${randomChannel.name}:`, err);
       }
-    }, Math.floor(Math.random() * 30000) + 15000); // Random every 15–45s
+    }, Math.floor(Math.random() * 30000) + 15000); // Random between 15-45 seconds
   }
 };

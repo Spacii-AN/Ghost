@@ -1,87 +1,136 @@
 import { EmbedBuilder, ColorResolvable } from 'discord.js';
 
 /**
- * Standard colors used across the bot
+ * A utility class to build and customize Discord embeds more easily for the Ghost bot
  */
-export const Colors = {
-  PRIMARY: 0x5865F2, // Discord Blurple
-  SUCCESS: 0x57F287, // Green
-  ERROR: 0xED4245,   // Red
-  WARNING: 0xFEE75C, // Yellow
-  INFO: 0x5865F2     // Discord Blurple
-};
+export class EmbedCreator {
+  private embed: EmbedBuilder;
+  private defaultColor: ColorResolvable = '#8B0000'; // Dark red color for the ghost bot
 
-/**
- * Default image URL for embed author icon
- */
-export const DEFAULT_AUTHOR_ICON = 'https://media.discordapp.net/attachments/1361740378599850233/1361744710300995797/98dcd7a2-9f17-4ef5-b153-7159980343c0.png?ex=67ffdf16&is=67fe8d96&hm=bb7cc70c73ee45b7b3918a73e92991ec528c2a3d5f757c929e5fe0f4c0edb603&=&format=webp&quality=lossless&width=2048&height=2048';
-
-/**
- * Types of embed messages
- */
-export type EmbedType = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'danger';
-
-/**
- * Create a standard embed with consistent styling
- */
-export function createEmbed(options: {
-  type?: EmbedType;
-  title?: string;
-  description?: string;
-  fields?: { name: string; value: string; inline?: boolean }[];
-  footer?: string;
-  thumbnail?: string;
-  image?: string;
-  author?: { name: string; iconURL?: string; url?: string };
-  timestamp?: boolean;
-  color?: ColorResolvable;
-}) {
-  // Default to primary type if not specified
-  const type = options.type || 'primary';
-  
-  // Map the type to color
-  let color = options.color || Colors.PRIMARY;
-  switch (type) {
-    case 'success':
-      color = Colors.SUCCESS;
-      break;
-    case 'error':
-    case 'danger': // Danger uses the same color as error
-      color = Colors.ERROR;
-      break;
-    case 'warning':
-      color = Colors.WARNING;
-      break;
-    case 'info':
-      color = Colors.INFO;
-      break;
+  constructor() {
+    this.embed = new EmbedBuilder();
+    this.setDefaultColor();
+    this.setTimestamp();
   }
-  
-  // Create the embed
-  const embed = new EmbedBuilder()
-    .setColor(color as ColorResolvable);
-  
-  // Add optional properties
-  if (options.title) embed.setTitle(options.title);
-  if (options.description) embed.setDescription(options.description);
-  if (options.thumbnail) embed.setThumbnail(options.thumbnail);
-  if (options.image) embed.setImage(options.image);
-  if (options.footer) embed.setFooter({ text: options.footer });
-  if (options.timestamp) embed.setTimestamp();
-  
-  // ALWAYS set the author field to ensure the icon appears
-  // If author provided, use it with DEFAULT_AUTHOR_ICON as fallback
-  // If no author provided, use a space character to make the icon visible
-  embed.setAuthor({
-    name: options.author?.name || ' ',
-    iconURL: options.author?.iconURL || DEFAULT_AUTHOR_ICON,
-    url: options.author?.url
-  });
-  
-  // Add fields if provided
-  if (options.fields && options.fields.length > 0) {
-    embed.addFields(options.fields);
+
+  /**
+   * Sets the title of the embed
+   * @param title The title to set
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setTitle(title: string): EmbedCreator {
+    this.embed.setTitle(title);
+    return this;
   }
-  
-  return embed;
-} 
+
+  /**
+   * Sets the description of the embed
+   * @param description The description to set
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setDescription(description: string): EmbedCreator {
+    this.embed.setDescription(description);
+    return this;
+  }
+
+  /**
+   * Sets the color of the embed
+   * @param color The color to set
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setColor(color: ColorResolvable): EmbedCreator {
+    this.embed.setColor(color);
+    return this;
+  }
+
+  /**
+   * Sets the default dark red color
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setDefaultColor(): EmbedCreator {
+    this.embed.setColor(this.defaultColor);
+    return this;
+  }
+
+  /**
+   * Sets the timestamp to the current time
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setTimestamp(): EmbedCreator {
+    this.embed.setTimestamp();
+    return this;
+  }
+
+  /**
+   * Adds a field to the embed
+   * @param name The name of the field
+   * @param value The value of the field
+   * @param inline Whether the field should be inline
+   * @returns The EmbedCreator instance for method chaining
+   */
+  addField(name: string, value: string, inline = false): EmbedCreator {
+    this.embed.addFields({ name, value, inline });
+    return this;
+  }
+
+  /**
+   * Sets the footer of the embed
+   * @param text The text of the footer
+   * @param iconURL The icon URL of the footer
+   * @returns The EmbedCreator instance for method chaining
+   */
+  setFooter(text: string, iconURL?: string): EmbedCreator {
+    this.embed.setFooter({ text, iconURL });
+    return this;
+  }
+
+  /**
+   * Builds and returns the Discord embed
+   * @returns The built EmbedBuilder
+   */
+  build(): EmbedBuilder {
+    return this.embed;
+  }
+
+  /**
+   * Creates a ghost ping notification embed
+   * @param targetUser The username of the pinged user
+   * @param channelName The channel where the ping occurred
+   * @returns A new EmbedCreator instance
+   */
+  static ghostPingEmbed(targetUser: string, channelName: string): EmbedCreator {
+    const builder = new EmbedCreator();
+    return builder
+      .setTitle('👻 Ghost Ping Alert')
+      .setDescription(`**${targetUser}** was ghost pinged in #${channelName}!`)
+      .setFooter('The message was deleted shortly after being sent');
+  }
+
+  /**
+   * Creates an error embed with a red color
+   * @param title The title of the error embed
+   * @param description The description of the error embed
+   * @returns A new EmbedCreator instance
+   */
+  static error(title: string, description: string): EmbedCreator {
+    const builder = new EmbedCreator();
+    return builder
+      .setTitle(`❌ ${title}`)
+      .setDescription(description)
+      .setColor('#FF0000'); // Bright red for errors
+  }
+
+  /**
+   * Creates a success embed with a green color
+   * @param title The title of the success embed
+   * @param description The description of the success embed
+   * @returns A new EmbedCreator instance
+   */
+  static success(title: string, description: string): EmbedCreator {
+    const builder = new EmbedCreator();
+    return builder
+      .setTitle(`✅ ${title}`)
+      .setDescription(description)
+      .setColor('#00FF00'); // Green for success
+  }
+}
