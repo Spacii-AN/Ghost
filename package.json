@@ -1,0 +1,17 @@
+{
+  "name": "troll-bot",
+  "version": "1.0.0",
+  "description": "Troll your friends by randomly pinging them and deleting the message!",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/index.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}
