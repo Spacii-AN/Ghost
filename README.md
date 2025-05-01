@@ -7,14 +7,21 @@ A Discord bot that allows you to troll users with ghost pings.
 1. Create a `.env` file in the root directory with the following variables:
 
 ```
-# Bot token from Discord Developer Portal
+
+# Discord Bot Configuration
+# Create a copy of this file named .env and fill in the values
+
+# Your Discord bot token
+# Both TOKEN and DISCORD_TOKEN work (they're the same)
 TOKEN=your_discord_bot_token
 
-# Application ID from Discord Developer Portal
+# Discord application ID (same as your bot's client ID)
 CLIENT_ID=your_application_id
 
-# Server/Guild ID where you want to use the bot
+# ID of the server (guild) where you want to deploy the commands
 GUILD_ID=your_server_id
+
+
 ```
 
 2. Install dependencies:
